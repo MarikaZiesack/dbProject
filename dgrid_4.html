@@ -41,18 +41,18 @@
     <!-- this is my big script that does everything -->
 	<script>
         var grid4;
+        var dropValue = 'test';
+
         //This is the search function
         function doSearch(){
             var input = $('#itemid').val();
-             grid4.filter({"test": "*" + input + "*"});
+            var dropHash = new Object();
+            dropHash[dropValue] = "*" + input + "*";
+             grid4.filter(dropHash);
         }
         $('#itemid').on('input', doSearch);
 
     
-
-
-
-
 
         //I am loading some parts of the dojo toolbox
         dojo.require("dojox.grid.DataGrid");
@@ -69,6 +69,8 @@
             var store;
             var MemoryStore = new dojo.store.Memory(); 
             var objectStore = new dojo.data.ObjectStore({objectStore:MemoryStore});
+         
+
             //the function that reads my excel file
             function readSingleFile(evt){
                 var f=evt.target.files[0];
@@ -125,18 +127,69 @@
                         dojo.byId("grid").appendChild(grid4.domNode);
                        
                         grid4.startup(); 
+
+
+                var recursiveParent = function(parent) { 
+                    objectStore.fetch({
+                        query:{genotype: parent},
+                        onComplete: function(items, request){
+                            //console.log(items);
+                            if (items.length > 0) {
+                                var item = items[0];
+                                
+                                console.log(objectStore.getValue(item, "genotype"));
+                                recursiveParent(objectStore.getValue(item, "Parent Strain"));
+                            }
+                        }
+
+
+                    })
+                }
+
+
+            grid4.on("CellClick", function(e){
+                var idx = e.rowIndex,
+                    item = grid4.getItem(idx);
+
+                var parent = grid4.store.getValue(item, "Parent Strain");
+                dropValue = "genotype";
+                $('#itemid').val(parent);
+                doSearch();
+                recursiveParent(parent);
+                console.log(parent);
+
+            })
+
+
+
+
                     } 
                 r.readAsText(f);
 
                
-                    new dijit.form.Select({
+              var dropdown = new dijit.form.Select({
             name: "select2",
             options: [
             { label: "sMZ no", value: "sMZ no", selected: true },
-            { label: "Species", value: "Species"}
+            { label: "Species", value: "Species"},
+
           
               ]
-            }).placeAt(dojo._base.window.body()).startup();
+            });
+
+            dojo.byId("tb").appendChild(dropdown.domNode);
+            dropdown.startup();
+
+            dojo.connect(dropdown, "onChange", function(value){
+                           
+                            console.log(value);
+                            dropValue = value;
+
+                        });
+
+
+            
+
 //});
 
 
