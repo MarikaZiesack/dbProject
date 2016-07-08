@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Tutorial: Hello dgrid!</title>
+	<!--<link rel="stylesheet" href="dojo.css">
+	<link rel="stylesheet" href="dgrid.css">
+	<link rel="stylesheet" href="claro.css">
+    <script src="jquery-3.0.0.min.js"></script>-->
+</head>
+<body class="claro">
+	<div id="grid"></div>
+
+	<!-- load Dojo -->
+	<!-- <script src="dojoConfig.js"></script> -->
+	<!--<script src="dojo/dojo.js"></script>-->
+    <input type="file" id="fileinput" />
+	<script>
+        function readSingleFile(evt){
+            var f=evt.target.files[0];
+            if(f){
+                var r=new FileReader();
+                r.onload = function(e) { 
+                    var contents = e.target.result;
+                    alert( "Got the file.n" 
+                          +"name: " + f.name + "n"
+                          +"type: " + f.type + "n"
+                          +"size: " + f.size + " bytesn"
+                          + "starts with: " + contents.substr(1, contents.indexOf("n"))
+                    );
+                    console.log(contents);
+                }
+                r.readAsText(f);
+            } else { 
+                alert("Failed to load file");
+            }
+        }
+
+        document.getElementById('fileinput').addEventListener('change', readSingleFile, false);
+		/*require([ 'dgrid/Grid', 'dojo/domReady!' ], function (Grid) {
+            var data = [
+                { first: 'Bob', last: 'Barker', age: 89 },
+                { first: 'Vanna', last: 'White', age: 55 },
+                { first: 'Pat', last: 'Sajak', age: 65 },
+                { first: 'Avi', last: 'Robinson-Mosher', age: 34}
+            ];
+            function readTextFile(file)
+{
+    var rawFile = new XMLHttpRequest();
+    rawFile.open("GET", file, false);
+    rawFile.onreadystatechange = function ()
+    {
+        if(rawFile.readyState === 4)
+        {
+            if(rawFile.status === 200 || rawFile.status == 0)
+            {
+                var allText = rawFile.responseText;
+                alert(allText);
+            }
+        }
+    }
+    rawFile.send(null);
+}
+
+readTextFile("file:///C:/Users/Wyss User/Documents/Project_DB/test.txt");
+
+
+
+
+            console.log("BLAAA");
+            var grid = new Grid({
+                columns: {
+                    first: 'First Name',
+                    last: 'Last Name',
+                    age: 'Age'
+                }
+            }, 'grid');
+            grid.renderArray(data);
+        });*/
+	</script>
+</body>
+</html>

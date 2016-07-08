@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Tutorial: Hello dgrid!</title>
+	<link rel="stylesheet" href="dojo.css">
+	<link rel="stylesheet" href="dgrid.css">
+	<link rel="stylesheet" href="claro.css">
+    <script src="jquery-3.0.0.min.js"></script>
+    <style type="text/css">
+        @import "dojox/grid/resources/Grid.css";
+        @import "dojox/grid/resources/tundraGrid.css";
+    </style>
+</head>
+
+<body class="claro">
+	<!-- <div id="grid"></div> -->
+    <div id="grid" style="width: 500px; height: 500px;"
+        data-dojo-type="dojox.grid.DataGrid"
+        data-dojo-props="query:{},rowsPerPage:40">
+    </div>
+	<!-- load Dojo -->
+	<!-- <script src="dojoConfig.js"></script> -->
+	<input type="file" id="fileinput" />
+    <script src="dojo/dojo.js"></script>
+    <script>dojoConfig = {parseOnLoad: true}</script>
+	<script>
+        dojo.require("dojox.grid.DataGrid");
+        dojo.require("dojox.data.CsvStore");
+        dojo.ready(function(){
+		//require([ 'dgrid/Grid', 'dojox/data/CsvStore', 'dijit/registry', 'dojo/domReady!' ], function (Grid, CsvStore, registry) {
+            var data = [
+                { first: 'Bob', last: 'Barker', age: 89 },
+                { first: 'Vanna', last: 'White', age: 55 },
+                { first: 'Pat', last: 'Sajak', age: 65 },
+                { first: 'Avi', last: 'Robinson-Mosher', age: 34}
+            ];
+            /*$.get("file:///C:/Users/Wyss User/Documents/Project_DB/test.txt", function(data){
+                console.log("BLL");
+                var items = data.split(',');
+                console.log(data);
+                console.log("BLUUUB");
+            });*/
+            var store;
+             function readSingleFile(evt){
+            var f=evt.target.files[0];
+            if(f){
+                var r=new FileReader();
+                r.onload = function(e) { 
+                    var contents = e.target.result;
+                    alert( "Got the file.n" 
+                          +"name: " + f.name + "n"
+                          +"type: " + f.type + "n"
+                          +"size: " + f.size + " bytesn"
+                          + "starts with: " + contents.substr(1, contents.indexOf("n"))
+                    );
+                    console.log(contents);
+                    store = new dojox.data.CsvStore({identifier: "sMZ no", data: contents});
+                      var layoutStrains = [
+      [
+        { field: "sMZ no", name: "sMZ", width: 10 },
+        { field: "Species", name: "Species", width: 10 },
+        { field: "genotype", name: "Genotype", width: 'auto' },
+        { field: "plasmid", name: "Plasmid", width: 'auto'}
+      ]
+    ];
+   // dojo.byId("grid").setStructure(layoutStrains);
+    //dojo.byId("grid").setStore(store, {});
+
+          var grid4 = new dojox.grid.DataGrid({
+        query: { "sMZ no": '*' },
+        store: store,
+        clientSort: true,
+        rowSelector: '20px',
+        structure: layoutStrains
+    }, document.createElement('div'));
+
+    dojo.byId("grid").appendChild(grid4.domNode);
+
+    grid4.startup();
+                }
+                r.readAsText(f);
+            } else { 
+                alert("Failed to load file");
+            }
+        }
+
+        document.getElementById('fileinput').addEventListener('change', readSingleFile, false);
+         
+        
+
+
+        /*    console.log("BLAAA");
+            var grid = new Grid({
+                columns: {
+                    first: 'First Name',
+                    last: 'Last Name',
+                    age: 'Age'
+                }
+            }, 'grid');
+            grid.renderArray(data);
+*/
+ 
+
+        });
+	</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+<!-- This is html part - information about the page that does not show up in the page -->
+<head>
+	<meta charset="utf-8">
+	<title>StrainList</title>
+	<link rel="stylesheet" href="dojo.css">
+	<link rel="stylesheet" href="dgrid.css">
+	<link rel="stylesheet" href="claro.css">
+    <script src="jquery-3.0.0.min.js"></script>
+    <style type="text/css">
+        @import "dojox/grid/resources/Grid.css";
+        @import "dojox/grid/resources/tundraGrid.css";
+    </style>
+</head>
+
+<!-- This is where the page starts it is called a body -->
+<body class="claro">
+    <!--This is to add a toolbar with search functionality-->
+    <div id="tb" style="padding:3px">
+    <span>Item ID:</span>
+    <input id="itemid" style="line-height:26px;border:1px solid #ccc">
+    <span>Product ID:</span>
+    <input id="productid" style="line-height:26px;border:1px solid #ccc">
+    <a href="#" class="easyui-linkbutton" plain="true" onclick="doSearch()">Search</a>
+    </div>
+
+
+    <!-- this determines the size of the window that I load my excel file into -->
+    <div id="grid" style="width: 1500px; height: 700px;"  
+        data-dojo-type="dojox.grid.DataGrid"
+        data-dojo-props="query:{},rowsPerPage:40">
+    </div>
+    <!-- This is to load a file on the page? -->
+	<input type="file" id="fileinput" />
+    <!-- I guess this initiates the dojo script that I am using (which is a javascript toolbox) -->
+    <script src="dojo/dojo.js"></script>
+    <script>dojoConfig = {parseOnLoad: true}</script>
+    <!-- this is my big script that does everything -->
+	<script>
+
+        var grid4;
+
+
+        function doSearch(){
+
+            var input = $('#itemid').val();
+             grid4.filter({"test": "*" + input + "*"});
+        }
+
+
+        $('#itemid').on('input', doSearch);
+
+        //I am loading some parts of the dojo toolbox
+        dojo.require("dojox.grid.DataGrid");
+        dojo.require("dojox.data.CsvStore");
+        dojo.require("dojo.store.Memory");
+        dojo.require("dojo.data.ObjectStore");
+        //this appears to be the function that puts my excel file into the browser interface
+        dojo.ready(function(){
+            //initiating a variable
+            var store;
+            var MemoryStore = new dojo.store.Memory(); 
+            var objectStore = new dojo.data.ObjectStore({objectStore:MemoryStore});
+
+            //the function that reads my excel file
+            function readSingleFile(evt){
+                var f=evt.target.files[0];
+
+                //what I do with the excel file
+                if(f){
+                    var r=new FileReader();
+                    r.onload = function(e) { 
+                        //determining some parameters
+                        var contents = e.target.result;
+                        alert( "Got the file.n" 
+                          +"name: " + f.name + "n"
+                          +"type: " + f.type + "n"
+                          +"size: " + f.size + " bytesn"
+                          + "starts with: " + contents.substr(1, contents.indexOf("n"))
+                        );
+                        //defining what I will take from my file
+                        //console.log(contents);
+                        store = new dojox.data.CsvStore({identifier: "sMZ no", data: contents});
+                        
+
+
+                        /*dojo.forEach(store, function(entry){
+                        console.log(entry);
+                        });*/
+                        console.log(store);
+                        console.log('TRIVIAL');
+
+                        var layoutStrains = [
+                            { field: "sMZ no", name: "sMZ", width: 10 },
+                            { field: "Species", name: "Species", width: 10 },
+                            { field: "genotype", name: "Genotype", width: 'auto' },
+                            { field: "plasmid", name: "Plasmid", width: 'auto'}, 
+                            { field: "Parent Strain", name: "Parent", width: 'auto'},
+                            { field: "source/ alias", name: "Source", width: 'auto'},
+                            { field: "Date", name: "Date", width: 'auto'},
+                            { field: "antibiotic", name: "Resistance", width: 'auto'},
+                            { field: "comments", name: "Comments", width: 'auto'},
+                            { field: "test", name: "test", width: 'auto', hidden: true}
+                        ];
+                        //console.log(layoutStrains);
+                        function gotList(items, request){
+                            dojo.forEach(items, function(entry){
+                                //array.forEach(layoutStrains, function(entry)){
+                                    var all = "";
+                                    var item = {};
+                                for (var i = 0; i<layoutStrains.length-1;i++){
+                                    all = all + store.getValue(entry, layoutStrains[i].field);
+                                    item[layoutStrains[i].field] = store.getValue(entry, layoutStrains[i].field);
+                                }
+                                item["test"] = all;
+                                MemoryStore.put(item);
+                                console.log(all);
+                                //store.setValue(entry, 'test', all);
+                            })
+                        }    
+
+                        store.fetch({
+                            onComplete: gotList
+
+                        }
+
+
+                        )
+
+                      
+                        //I dont really get that but seems to be important
+                        grid4 = new dojox.grid.DataGrid({
+                            query: { "sMZ no": '*' },
+                            store: objectStore,
+                            clientSort: true,
+                            rowSelector: '20px',
+                            structure: layoutStrains
+                        }, document.createElement('div'));
+                        dojo.byId("grid").appendChild(grid4.domNode);
+                       
+                        grid4.startup();
+                    }
+                r.readAsText(f);
+                } 
+                else { 
+                    alert("Failed to load file");
+                }
+            }
+            document.getElementById('fileinput').addEventListener('change', readSingleFile, false);
+        });
+	</script>
+</body>
+
+</html>
