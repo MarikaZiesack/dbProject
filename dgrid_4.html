@@ -41,14 +41,14 @@
     <!-- this is my big script that does everything -->
 	<script>
         var grid4;
-        var dropValue = 'test';
+        var searchColumn = 'allColumns';
 
         //This is the search function
         function doSearch(){
             var input = $('#itemid').val();
             var dropHash = new Object();
-            dropHash[dropValue] = "*" + input + "*";
-             grid4.filter(dropHash);
+            dropHash[searchColumn] = "*" + input + "*";
+            grid4.filter(dropHash);
         }
         $('#itemid').on('input', doSearch);
 
@@ -67,8 +67,8 @@
         dojo.ready(function(){
             //initiating some variables
             var store;
-            var MemoryStore = new dojo.store.Memory(); 
-            var objectStore = new dojo.data.ObjectStore({objectStore:MemoryStore});
+            var memoryStore = new dojo.store.Memory(); 
+            var objectStore = new dojo.data.ObjectStore({objectStore:memoryStore});
             var layoutStrains = [
                                        { field: "sMZ no", name: "sMZ", width: 10 },
                                        { field: "Species", name: "Species", width: 10 },
@@ -79,28 +79,28 @@
                                        { field: "Date", name: "Date", width: 'auto'},
                                        { field: "antibiotic", name: "Resistance", width: 'auto'},
                                        { field: "comments", name: "Comments", width: 'auto'},
-                                       { field: "test", name: "test", width: 'auto', hidden: true}
+                                       { field: "allColumns", name: "allColumns", width: 'auto', hidden: true}
                                    ];         
 
             //the function that reads my excel file
             function readSingleFile(evt){
-                var f=evt.target.files[0];
+                var filePath=evt.target.files[0];
                 //what I do with the excel file
-                if(f){
-                    var r=new FileReader();
-                    r.onload = function(e) { 
+                if(filePath){
+                    var fileReader=new FileReader();
+                    fileReader.onload = function(event) { 
                         //determining some parameters
-                        var contents = e.target.result;
-                        alert( "Got the file.n" 
-                          +"name: " + f.name + "n"
-                          +"type: " + f.type + "n"
-                          +"size: " + f.size + " bytesn"
-                          + "starts with: " + contents.substr(1, contents.indexOf("n"))
+                        var contents = event.target.result;
+                        alert( "Got the file.\n" 
+                          +"name: " + filePath.name + "\n"
+                          +"type: " + filePath.type + "\n"
+                          +"size: " + filePath.size + " bytes\n"
+                          + "starts with: " + contents.substr(1, contents.indexOf("\n"))
                         );
                         //defining what I will take from my file
                         store = new dojox.data.CsvStore({identifier: "sMZ no", data: contents});   
                        
-                        //This is taking all the inputs of the other columns and puts them together into the "test" field which I use for searching
+                        //This is taking all the inputs of the other columns and puts them together into the "allColumns" field which I use for searching
                         function gotList(items, request){
                             dojo.forEach(items, function(entry){
                                 var all = "";
@@ -109,89 +109,89 @@
                                     all = all + store.getValue(entry, layoutStrains[i].field);
                                     item[layoutStrains[i].field] = store.getValue(entry, layoutStrains[i].field);
                                 }
-                                item["test"] = all;
-                                MemoryStore.put(item);
+                                item["allColumns"] = all;
+                                memoryStore.put(item);
                             })
-                        }    
+                        };    
                         store.fetch({
                             onComplete: gotList
-                        })
+                        });
                         //this invokes the dojo code for grids
-                       grid4 = new dojox.grid.DataGrid({
+                        grid4 = new dojox.grid.DataGrid({
                             query: { "sMZ no": '*' },
                             store: objectStore,
                             clientSort: true,
                             rowSelector: '20px',
                             structure: layoutStrains
-                        }, document.createElement('div'));
+                            }, document.createElement('div'));
                         dojo.byId("grid").appendChild(grid4.domNode);
                        
                         grid4.startup(); 
 
+                        lineageList = [];
+                        var recursiveParent = function(parent, lineageList) { 
 
-                var recursiveParent = function(parent) { 
-                    objectStore.fetch({
-                        query:{genotype: parent},
-                        onComplete: function(items, request){
-                            //console.log(items);
-                            if (items.length > 0) {
-                                var item = items[0];
-                                
-                                console.log(objectStore.getValue(item, "genotype"));
-                                recursiveParent(objectStore.getValue(item, "Parent Strain"));
-                            }
-                        }
-
-
-                    })
-                }
-
-
-            grid4.on("CellClick", function(e){
-                var idx = e.rowIndex,
-                    item = grid4.getItem(idx);
-
-                var parent = grid4.store.getValue(item, "Parent Strain");
-                dropValue = "genotype";
-                $('#itemid').val(parent);
-                doSearch();
-                recursiveParent(parent);
-                console.log(parent);
-
-            })
+                            objectStore.fetch({
+                                query:{genotype: parent},
+                                onComplete: function(items, request){     
+                                    if (items.length > 0) {
+                                        var item = items[0];
+                                        console.log(objectStore.getValue(item, "genotype"));
+                                        lineageList.push(objectStore.getValue(item, "genotype"));
+                                        recursiveParent(objectStore.getValue(item, "Parent Strain"), lineageList);  
+                                    }
+                                    else{
+                                        grid4.filter({"genotype": {
+                                          test: function(x) {
+                                            for (var i = 0; i<lineageList.length;i++){
+                                               if (x == lineageList[i]) {
+                                                   return true;
+                                               }
+                                            }
+                                            return false ;
+                                          }
+                                        }});
+                                    }
+                                }
+                            })
+                        };
 
 
+                        grid4.on("CellClick", function(e){
+                            var idx = e.rowIndex,
+                            item = grid4.getItem(idx);
 
+                            var parent = grid4.store.getValue(item, "Parent Strain");
+                            searchColumn = "genotype";
+                            $('#itemid').val(parent);
+                            doSearch();
+                            recursiveParent(parent, [grid4.store.getValue(item, "genotype")]);
+                            console.log(parent);
 
+                        })
                     } 
-                r.readAsText(f);
+                    fileReader.readAsText(filePath);
 
-                var fieldOptions = [];
-                for (var i = 0; i<layoutStrains.length;i++){
-                    fieldOptions.push({ label: layoutStrains[i].field, value: layoutStrains[i].field})          
-                }
-                fieldOptions[0].selected = true;
+                    var fieldOptions = [];
+                    for (var i = 0; i<layoutStrains.length;i++){
+                        fieldOptions.push({ label: layoutStrains[i].field, value: layoutStrains[i].field})          
+                    }
+                    fieldOptions[0].selected = true;
                
-              var dropdown = new dijit.form.Select({
-            name: "select2",
-            options: fieldOptions
-            });
+                    var dropdown = new dijit.form.Select({
+                        name: "select2",
+                        options: fieldOptions
+                    });
 
-            dojo.byId("tb").appendChild(dropdown.domNode);
-            dropdown.startup();
+                    dojo.byId("tb").appendChild(dropdown.domNode);
+                    dropdown.startup();
 
-            dojo.connect(dropdown, "onChange", function(value){
+                    dojo.connect(dropdown, "onChange", function(value){
                            
                             console.log(value);
-                            dropValue = value;
+                            searchColumn = value;
 
-                        });
-
-
-            
-
-//});
-
+                    });
 
                 } 
                 else { 
