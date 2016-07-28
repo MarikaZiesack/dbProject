@@ -69,7 +69,18 @@
             var store;
             var MemoryStore = new dojo.store.Memory(); 
             var objectStore = new dojo.data.ObjectStore({objectStore:MemoryStore});
-         
+            var layoutStrains = [
+                                       { field: "sMZ no", name: "sMZ", width: 10 },
+                                       { field: "Species", name: "Species", width: 10 },
+                                       { field: "genotype", name: "Genotype", width: 'auto' },
+                                       { field: "plasmid", name: "Plasmid", width: 'auto'}, 
+                                       { field: "Parent Strain", name: "Parent", width: 'auto'},
+                                       { field: "source/ alias", name: "Source", width: 'auto'},
+                                       { field: "Date", name: "Date", width: 'auto'},
+                                       { field: "antibiotic", name: "Resistance", width: 'auto'},
+                                       { field: "comments", name: "Comments", width: 'auto'},
+                                       { field: "test", name: "test", width: 'auto', hidden: true}
+                                   ];         
 
             //the function that reads my excel file
             function readSingleFile(evt){
@@ -88,18 +99,7 @@
                         );
                         //defining what I will take from my file
                         store = new dojox.data.CsvStore({identifier: "sMZ no", data: contents});   
-                        var layoutStrains = [
-                            { field: "sMZ no", name: "sMZ", width: 10 },
-                            { field: "Species", name: "Species", width: 10 },
-                            { field: "genotype", name: "Genotype", width: 'auto' },
-                            { field: "plasmid", name: "Plasmid", width: 'auto'}, 
-                            { field: "Parent Strain", name: "Parent", width: 'auto'},
-                            { field: "source/ alias", name: "Source", width: 'auto'},
-                            { field: "Date", name: "Date", width: 'auto'},
-                            { field: "antibiotic", name: "Resistance", width: 'auto'},
-                            { field: "comments", name: "Comments", width: 'auto'},
-                            { field: "test", name: "test", width: 'auto', hidden: true}
-                        ];
+                       
                         //This is taking all the inputs of the other columns and puts them together into the "test" field which I use for searching
                         function gotList(items, request){
                             dojo.forEach(items, function(entry){
@@ -166,15 +166,15 @@
                     } 
                 r.readAsText(f);
 
+                var fieldOptions = [];
+                for (var i = 0; i<layoutStrains.length;i++){
+                    fieldOptions.push({ label: layoutStrains[i].field, value: layoutStrains[i].field})          
+                }
+                fieldOptions[0].selected = true;
                
               var dropdown = new dijit.form.Select({
             name: "select2",
-            options: [
-            { label: "sMZ no", value: "sMZ no", selected: true },
-            { label: "Species", value: "Species"},
-
-          
-              ]
+            options: fieldOptions
             });
 
             dojo.byId("tb").appendChild(dropdown.domNode);
